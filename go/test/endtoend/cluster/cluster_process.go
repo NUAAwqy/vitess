@@ -79,6 +79,34 @@ var (
 	PerfTest = flag.Bool("perf-test", false, "include end-to-end performance tests")
 )
 
+<<<<<<< HEAD
+||||||| parent of f189a16c83 (test: remove dead waits from the reparent e2e tests (#21623))
+// IsCoverage reports whether this is a coverage run (-is-coverage). Binaries
+// then write their coverage profiles on a graceful exit, so teardown must not
+// kill them.
+func IsCoverage() bool {
+	return *isCoverage
+}
+
+=======
+// IsCoverage reports whether this is a coverage run (-is-coverage). Binaries
+// then write their coverage profiles on a graceful exit, so teardown must not
+// kill them.
+func IsCoverage() bool {
+	return *isCoverage
+}
+
+// KillDiscardedMySQL reports whether a mysqld whose data is never read again
+// is killed instead of shut down gracefully. On CI the data directory is
+// discarded after the test run, so nothing needs to be flushed to disk and a
+// graceful shutdown buys nothing: killing skips the shutdown ack wait that
+// can stall a semi-sync primary for many seconds. Coverage runs still shut
+// down gracefully so that the mysqlctl shutdown path stays exercised.
+func KillDiscardedMySQL() bool {
+	return os.Getenv("CI") == "true" && !*isCoverage
+}
+
+>>>>>>> f189a16c83 (test: remove dead waits from the reparent e2e tests (#21623))
 // LocalProcessCluster Testcases need to use this to iniate a cluster
 type LocalProcessCluster struct {
 	Keyspaces          []Keyspace
@@ -1069,6 +1097,19 @@ func (cluster *LocalProcessCluster) Teardown() {
 		log.Errorf("Error in vtadmin teardown: %v", err)
 	}
 
+<<<<<<< HEAD
+||||||| parent of f189a16c83 (test: remove dead waits from the reparent e2e tests (#21623))
+	// On CI the data directory is discarded after the test run, so nothing
+	// needs to be flushed to disk and a graceful mysqld shutdown buys us
+	// nothing. Killing mysqld skips the shutdown ack wait that can stall a
+	// semi-sync primary for many seconds per cluster. Coverage runs still
+	// shut down gracefully so that the mysqlctl shutdown path stays exercised.
+	killMySQL := os.Getenv("CI") == "true" && !*isCoverage
+
+=======
+	killMySQL := KillDiscardedMySQL()
+
+>>>>>>> f189a16c83 (test: remove dead waits from the reparent e2e tests (#21623))
 	var mysqlctlProcessList []*exec.Cmd
 	var mysqlctlTabletUIDs []int
 	for _, keyspace := range cluster.Keyspaces {
